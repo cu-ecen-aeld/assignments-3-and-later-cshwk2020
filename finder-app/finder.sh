@@ -10,7 +10,7 @@ Total number of arguments should be 2.
 EOF
     exit 1
 fi
-
+ 
 folder_path=$1
 search_string=$2
 

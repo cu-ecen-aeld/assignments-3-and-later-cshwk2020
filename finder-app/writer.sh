@@ -11,7 +11,7 @@ The order of the arguments should be:
 EOF
     exit 1
 fi
-
+  
 file_path=$1
 folder_path=$(dirname "$file_path")
 saved_string=$2
