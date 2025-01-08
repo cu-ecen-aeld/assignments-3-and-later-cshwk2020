@@ -18,7 +18,7 @@ void log_message(const char *format, ...) {
     syslog(LOG_USER | LOG_DEBUG, format, args);
 
 }
-
+ 
 int ensure_folder_exists(const char *dir) {
 
     struct stat st = {0};
