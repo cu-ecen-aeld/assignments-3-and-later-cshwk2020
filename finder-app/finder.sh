@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 
 if [ "$#" -ne 2 ]; then 
@@ -22,15 +22,35 @@ fi
 total_match_count=0
 total_file_count=0
  
-shopt -s globstar
+process_folder() {
+    local dir="$1"
+    if [ -d "$dir" ]; then 
+       for f in "$dir"/*; do 
+            if [ -d "$f" ]; then 
+                #echo "folder is $f"
+                process_folder "$f"
+            elif [ -f "$f" ]; then 
+                #echo "file is $f"
+                echo "$f \n"
+                match_count=$(grep -c "$search_string" "$f" )
+                total_match_count=$((total_match_count + $match_count))
+                total_file_count=$((total_file_count + 1))
+            fi
+       done  
+        
+    fi
+}
 
-for file in "$folder_path"/**/*; do 
-if [[ -f "$file" ]]; then
-        echo "$file \n"
-        match_count=$(grep -c "$search_string" "$file" )
-        total_match_count=$((total_match_count + $match_count))
-        total_file_count=$((total_file_count + 1))
-    fi 
-done
+process_folder "$folder_path"
+
+#shopt -s globstar
+# for file in "$folder_path"/**/*; do 
+# if [[ -f "$file" ]]; then
+#         echo "$file \n"
+#         match_count=$(grep -c "$search_string" "$file" )
+#         total_match_count=$((total_match_count + $match_count))
+#         total_file_count=$((total_file_count + 1))
+#     fi 
+# done
 
 echo "The number of files are $total_file_count and the number of matching lines are $total_match_count"
