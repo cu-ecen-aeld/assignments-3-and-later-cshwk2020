@@ -94,7 +94,7 @@ char* string_printf(const char* format, ...) {
     va_start(args, format);
     vsnprintf(result, size, format, args);
     va_end(args);
-
+ 
     return result; // Caller must free the memory
 }
 
