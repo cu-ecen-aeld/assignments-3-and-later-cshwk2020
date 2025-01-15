@@ -7,7 +7,7 @@ OBJS := $(SRC:.c=.o)
 # make CROSS_COMPILE=aarch64_be-none-linux-gnu- all
 # aarch64_be-none-linux-gnu-readelf -a writer | grep "Shared library"
 # aarch64_be-none-linux-gnu-readelf -a writer | grep "program interpreter"
-
+ 
 CROSS_COMPILE ?=
  
 ifdef CROSS_COMPILE
