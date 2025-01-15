@@ -15,7 +15,7 @@ ifdef CROSS_COMPILE
 endif
 
 all: $(TARGET)
-
+ 
 $(TARGET) : $(OBJS)
 	$(CC) $(CFLAGS) $(INCLUDES) $(OBJS) -g -o $(TARGET) $(LDFLAGS)
 

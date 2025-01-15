@@ -89,7 +89,7 @@ char* string_printf(const char* format, ...) {
     if (!result) {
         return NULL; // Allocation failed
     }
-
+ 
     // Format the string
     va_start(args, format);
     vsnprintf(result, size, format, args);
