@@ -1,12 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <unistd.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <fcntl.h>
 #include <sys/wait.h>
-#include "systemcalls.h"
+
+#define REDIRECT_FILE "./testfile.txt"
 
 /**
  * @param cmd the command to execute with system()
@@ -30,7 +30,7 @@ bool do_system(const char *cmd)
     } 
     else {
         return false;
-    }  
+    }    
 }
 
 /**
@@ -47,13 +47,6 @@ bool do_system(const char *cmd)
 *   by the command issued in @param arguments with the specified arguments.
 */
 
-bool is_absolute_path(const char *path) {
-    if (path==NULL || strlen(path)==0) {
-        return false;
-    }
-    return (path[0] == '/');
-}
-
 bool do_exec(int count, ...)
 {
     va_list args;
@@ -63,6 +56,7 @@ bool do_exec(int count, ...)
     for(i=0; i<count; i++)
     {
         command[i] = va_arg(args, char *);
+        printf("cmd==%s\n", command[i]);
     }
     command[count] = NULL;
     // this line is to avoid a compile warning before your implementation is complete
@@ -79,35 +73,21 @@ bool do_exec(int count, ...)
  *
 */
 
-        if (is_absolute_path(command[0])==false) {
-            printf("not absolute path: %s\n", command[0]);
-            fflush(stdout);
-            return false;
-        }
-
         pid_t pid = fork();
 
         if (pid==0) {
             printf("child execv cmd");
-            fflush(stdout);
-
-            
-
             execv(command[0], (char*const*)command);
             // if success: wont reach here...
             perror("execv failed");
-            return false;
+            exit(1);
         } else if (pid > 0) {
             int status;
             wait(&status);
             printf("command %s completed with status==%d\n", command[0], WEXITSTATUS(status));
-            fflush(stdout);
-            if (status != 0) {
-                return false;
-            }
         } else {
             perror("fork failed");
-            return false;
+            exit(1);
         }
 
     va_end(args);
@@ -143,97 +123,38 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
-
-    int original_stdout = dup(STDOUT_FILENO);
-    if (original_stdout == -1) {
-        perror("dup original stdout failed");
-        return false;
-    }
-
-    /* 
-    if (dup2(original_stdout, STDOUT_FILENO) == -1) {
-        perror("dup2 restore stdout failed");
-        return false;
-    }
-    */
-
-    int fd = open(REDIRECT_FILE, O_WRONLY|O_TRUNC|O_CREAT, 0644);
-    if (fd < 0) { perror("open"); return false; }
-    if (dup2(fd, 1) < 0) { perror("dup2"); return false; }
+    int fd = open("./redirected.txt", O_WRONLY|O_TRUNC|O_CREAT, 0644);
+    if (fd < 0) { perror("open"); abort(); }
+    if (dup2(fd, 1) < 0) { perror("dup2"); exit(1); }
      
         //
         pid_t pid = fork();
 
         if (pid==0) {
             //printf("child execv cmd");
-            if (is_absolute_path(command[0])==false) {
-                printf("not absolute path: %s\n", command[0]);
-                fflush(stdout);
-                
-                if (dup2(original_stdout, STDOUT_FILENO) == -1) {
-                    perror("dup2 restore stdout failed");
-                    return false;
-                }
-                close(original_stdout);
-
-                close(fd);
-
-                
-                return false;
-            }
-
             execv(command[0], (char*const*)command);
             // if success: wont reach here...
             perror("execv failed");
-
-            if (dup2(original_stdout, STDOUT_FILENO) == -1) {
-                    perror("dup2 restore stdout failed");
-                    return false;
-            }
-            close(original_stdout);
             close(fd);
-
-            //exit(1);
-            return false;
+            exit(1);
         } else if (pid > 0) {
             int status;
             wait(&status);
             //printf("command %s completed with status==%d\n", command[0], WEXITSTATUS(status));
-            if (status != 0) {
-                if (dup2(original_stdout, STDOUT_FILENO) == -1) {
-                    perror("dup2 restore stdout failed");
-                    return false;
-                }
-                close(original_stdout);
-                close(fd);
-                return false;
-            }
         } else {
             perror("fork failed");
-
-            if (dup2(original_stdout, STDOUT_FILENO) == -1) {
-                    perror("dup2 restore stdout failed");
-                    return false;
-            }
-            close(original_stdout);
             close(fd);
-            return false;
+            exit(1);
         }
 
 
-    if (dup2(original_stdout, STDOUT_FILENO) == -1) {
-        perror("dup2 restore stdout failed");
-        return false;
-    }
-    close(original_stdout);
-    
+
     close(fd);
 
     va_end(args);
 
     return true;
 }
-
 
 /*
 do_system("echo this is a test > " REDIRECT_FILE ),
@@ -244,24 +165,21 @@ do_exec(3, "/usr/bin/test","-f","/bin/echo")
 do_exec_redirect(REDIRECT_FILE, 3, "/bin/sh", "-c", "echo home is $HOME");
 do_exec_redirect(REDIRECT_FILE, 2, "/bin/echo", "home is $HOME");
 */
+int main(int argc, char *argv[]) {
 
-int __main(int argc, char *argv[]) {
-
-    ////int fd = open("REDIRECT_FILE, O_WRONLY|O_TRUNC|O_CREAT, 0644);
-    ////if (fd < 0) { perror("open"); abort(); }
+    int fd = open("./redirected.txt", O_WRONLY|O_TRUNC|O_CREAT, 0644);
+    if (fd < 0) { perror("open"); abort(); }
     ////if (dup2(fd, 1) < 0) { perror("dup2"); exit(1); }
      
 
     // do_system("/bin/ls -l");
     // do_system("echo this is a test > " REDIRECT_FILE );
-    int rc = do_exec(2, "echo", "Testing execv implementation with echo");
+    //do_exec(2, "echo", "Testing execv implementation with echo");
     //do_exec(3, "/usr/bin/test","-f","/bin/echo");
-    // int rc = do_exec(3, "/usr/bin/test","-f","echo");
-    //int rc = do_exec_redirect(REDIRECT_FILE, 3, "/bin/sh", "-c", "echo home is $HOME");
-    //int rc=do_exec_redirect(REDIRECT_FILE, 3, "/bin/sh", "-c", "echo home is $HOME");
-    //int rc = do_exec(2, "echo", "Testing execv implementation with echo");
-    printf("main::rc==%d\n", rc);
-    fflush(stdout);
+    // do_exec(3, "/usr/bin/test","-f","echo");
+    // do_exec_redirect(REDIRECT_FILE, 3, "/bin/sh", "-c", "echo home is $HOME");
+    do_exec_redirect(REDIRECT_FILE, 3, "/bin/sh", "-c", "echo home is $HOME");
+
 
     ////close(fd);
 

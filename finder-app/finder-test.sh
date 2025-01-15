@@ -25,6 +25,11 @@ else
 	WRITEDIR=/tmp/aeld-data/$3
 fi
 
+echo "WRITEDIR: ${WRITEDIR}"
+
+# ensure file path exists
+# mkdir -p "${WRITEDIR}" && echo "folder created: $WRITEDIR" || echo "ERROR: failed to create folder: $WRITEDIR"
+
 MATCHSTR="The number of files are ${NUMFILES} and the number of matching lines are ${NUMFILES}"
 
 echo "Writing ${NUMFILES} files containing string ${WRITESTR} to ${WRITEDIR}"
@@ -51,12 +56,12 @@ fi
 #echo "Removing the old writer utility and compiling as a native application"
 #make clean
 #make
-
+ 
 for i in $( seq 1 $NUMFILES)
 do
-	./writer.sh "$WRITEDIR/${username}$i.txt" "$WRITESTR"
+	./writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
 done
-
+ 
 OUTPUTSTRING=$(./finder.sh "$WRITEDIR" "$WRITESTR")
 
 # remove temporary directories
@@ -71,3 +76,5 @@ else
 	echo "failed: expected  ${MATCHSTR} in ${OUTPUTSTRING} but instead found"
 	exit 1
 fi
+
+echo "FINISHED"
