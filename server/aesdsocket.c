@@ -14,7 +14,7 @@
 #include <errno.h>
 #include <syslog.h>
 #include <signal.h>
- 
+
 #define PORT 9000
 #define BUFFER_SIZE 1024
 #define FILE_PATH "/var/tmp/aesdsocketdata"

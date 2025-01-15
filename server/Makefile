@@ -9,7 +9,7 @@ OBJS := $(SRC:.c=.o)
 # aarch64_be-none-linux-gnu-readelf -a writer | grep "program interpreter"
  
 CROSS_COMPILE ?=
- 
+
 ifdef CROSS_COMPILE
     CC := $(CROSS_COMPILE)gcc
 endif
