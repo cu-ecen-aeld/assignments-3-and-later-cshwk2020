@@ -1,0 +1,60 @@
+#!/bin/sh
+
+
+CMD=./aesdsocket
+
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 {start | stop}"
+    exit 1
+fi
+
+find_pid() {
+   
+    PIDS=$(ps aux | grep -v grep | grep -v "S99aesdsocket" | grep -v "aesdsocket-start-stop" | grep aesdsocket) 
+    if [ -z "$PIDS" ]; then
+     
+        echo ""
+    else 
+        #echo here
+        RESULT=$(ps aux | grep -v grep | grep -v "S99aesdsocket" | grep -v "aesdsocket-start-stop" | grep aesdsocket | awk '{print $2}')
+        echo "$RESULT"
+    fi 
+ 
+     
+}
+ 
+case "$1" in 
+
+    start)
+        CMD_PID=$(find_pid)  
+        echo "CMD_PID: $CMD_PID"
+        if [ "$CMD_PID" = "" ]; then
+            echo "starting $CMD..."
+            $CMD -d
+            echo "$CMD started"
+            
+        else
+            echo "$CMD is already running with PID $CMD_PID"
+        fi 
+        ;;
+
+    stop)
+        CMD_PID=$(find_pid)  
+        echo "CMD_PID: ${CMD_PID}"
+        if [ "$CMD_PID" = "" ]; then
+            echo "$CMD is not running"
+             
+        else 
+            echo "stopping $CMD"
+            kill -TERM $CMD_PID
+            echo "$CMD stopped (PID $CMD_PID)"
+        fi 
+        ;;
+
+    *)
+        echo "Invalid argument: $1"
+        echo "Usage: $0 {start | stop}"
+        exit 1
+        ;;
+
+    esac
